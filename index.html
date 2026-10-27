@@ -14,6 +14,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase JS Client v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- SheetJS (Excel .xlsx / .csv parser & generator) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -71,6 +73,15 @@
       font-weight: 700;
       border-right: 3px solid #005BFE;
     }
+
+    /* Modal Animation */
+    .modal-enter {
+      animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
   </style>
 </head>
 
@@ -80,7 +91,7 @@
   <!-- 1. FULLSCREEN LOGIN PORTAL (SECURE GATEWAY) -->
   <!-- ========================================== -->
   <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/95 backdrop-blur-md p-4 transition-opacity duration-300">
-    <div class="max-w-md w-full bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 flex flex-col relative overflow-hidden">
+    <div class="max-w-md w-full bg-white rounded-3xl p-8 shadow-2xl border border-slate-100 flex flex-col relative overflow-hidden modal-enter">
       
       <!-- Top Decorative Glow -->
       <div class="absolute -top-12 -right-12 w-40 h-40 bg-blue-500/15 rounded-full blur-2xl pointer-events-none"></div>
@@ -88,12 +99,12 @@
 
       <!-- Brand Logo & Header -->
       <div class="flex flex-col items-center text-center">
-        <div class="p-2 mb-2">
+        <div class="p-3 mb-2 bg-slate-50 rounded-2xl border border-slate-100 shadow-xs flex items-center justify-center">
           <img src="assets/hetra-logo.png" alt="PT Hetra Teknologi Indonesia" class="h-16 w-auto object-contain drop-shadow-sm">
         </div>
-        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Central CRM Access</h2>
+        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight mt-1">Central CRM Access</h2>
         <p class="text-xs text-slate-500 mt-1 max-w-xs leading-relaxed">
-          PT Hetra Teknologi Indonesia &bull; Portal aman pemantauan leads &amp; pipeline ZWCAD/ZW3D
+          PT Hetra Teknologi Indonesia &bull; Portal aman manajemen database &amp; leads ZWCAD/ZW3D
         </p>
       </div>
 
@@ -147,7 +158,7 @@
       <!-- Security Notice -->
       <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
         <span>Domain: hetraleads.web.id</span>
-        <span>Versi 2.0.0 (Sidebar)</span>
+        <span>Versi 2.1.0</span>
       </div>
 
     </div>
@@ -181,7 +192,7 @@
       <div class="p-5 border-b border-slate-100 flex flex-col space-y-2">
         <div class="flex items-center justify-between">
           <img src="assets/hetra-logo.png" alt="PT Hetra Teknologi Indonesia" class="h-10 w-auto object-contain">
-          <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">CRM v2.0</span>
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">CRM v2.1</span>
         </div>
         <div class="pt-1">
           <h1 class="font-extrabold text-sm text-slate-900 tracking-tight">CENTRAL CRM</h1>
@@ -190,11 +201,27 @@
       </div>
 
       <!-- Navigation Menu Groups -->
-      <div class="p-3 space-y-6">
+      <div class="p-3 space-y-5">
         
-        <!-- Group 1: TAMPILAN UTAMA -->
+        <!-- Group 1: AKSI DATABASE CEPAT -->
         <div>
-          <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Menu Utama</span>
+          <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kelola Data</span>
+          <div class="mt-2 space-y-1.5">
+            <button onclick="openLeadModal()" class="w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>+ Tambah Prospek</span>
+            </button>
+
+            <button onclick="openImportModal()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs transition">
+              <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <span>Import Excel (.xlsx)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Group 2: TAMPILAN UTAMA -->
+        <div>
+          <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tampilan CRM</span>
           <nav class="mt-2 space-y-1">
             <button onclick="switchView('table')" id="navItemTable" class="nav-item-active w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
               <svg class="w-4 h-4 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
@@ -208,7 +235,7 @@
           </nav>
         </div>
 
-        <!-- Group 2: FILTER SUMBER PLATFORM -->
+        <!-- Group 3: FILTER SUMBER PLATFORM -->
         <div>
           <span class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sumber Leads</span>
           <nav class="mt-2 space-y-1">
@@ -251,6 +278,14 @@
               </div>
               <span id="badgePlatSheets" class="text-[10px] font-mono text-slate-400">0</span>
             </button>
+
+            <button onclick="setSidebarPlatformFilter('excel_import')" id="filterPlatExcel" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition">
+              <div class="flex items-center space-x-2.5">
+                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                <span>Import Excel / File</span>
+              </div>
+              <span id="badgePlatExcel" class="text-[10px] font-mono text-slate-400">0</span>
+            </button>
           </nav>
         </div>
 
@@ -270,7 +305,7 @@
       <!-- User Card -->
       <div class="flex items-center justify-between pt-1">
         <div class="flex items-center space-x-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">
+          <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs flex-shrink-0 shadow-xs">
             A
           </div>
           <div class="min-w-0 flex-1">
@@ -338,6 +373,11 @@
         <!-- Hidden input for sidebar platform filter syncing -->
         <input type="hidden" id="platformFilter" value="ALL">
 
+        <!-- Export All to Excel -->
+        <button onclick="exportCurrentTableToExcel()" class="p-2 text-slate-600 hover:text-emerald-700 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 rounded-xl transition" title="Ekspor Tabel ke Excel (.xlsx)">
+          <svg class="w-4 h-4 text-current" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+
         <!-- Refresh Button -->
         <button onclick="fetchLeads()" class="p-2 text-slate-500 hover:text-slate-800 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition" title="Refresh Data">
           <svg id="refreshIcon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -402,18 +442,21 @@
       </div>
 
       <!-- VIEW 1: DATA TABLE -->
-      <div id="tableView" class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex-1">
-        <div class="overflow-x-auto">
+      <div id="tableView" class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex-1 flex flex-col">
+        <div class="overflow-x-auto flex-1">
           <table class="w-full text-left text-sm border-collapse">
             <thead>
-              <tr class="bg-slate-50/90 border-b border-slate-200 text-slate-500 font-semibold text-xs uppercase tracking-wider">
-                <th class="py-3 px-4">Waktu Masuk</th>
-                <th class="py-3 px-4">Sumber Platform</th>
-                <th class="py-3 px-4">Nama Prospek &amp; Perusahaan</th>
-                <th class="py-3 px-4">Kontak (WhatsApp / Email)</th>
-                <th class="py-3 px-4">Produk Minat</th>
-                <th class="py-3 px-4">Status Pipeline</th>
-                <th class="py-3 px-4 text-right">Aksi Cepat</th>
+              <tr class="bg-slate-50/90 border-b border-slate-200 text-slate-500 font-semibold text-xs uppercase tracking-wider select-none">
+                <th class="py-3.5 px-4 w-10 text-center">
+                  <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer" title="Pilih Semua Baris">
+                </th>
+                <th class="py-3.5 px-3">Waktu Masuk</th>
+                <th class="py-3.5 px-3">Sumber</th>
+                <th class="py-3.5 px-4">Nama Prospek &amp; Perusahaan</th>
+                <th class="py-3.5 px-4">Kontak (WhatsApp / Email)</th>
+                <th class="py-3.5 px-3">Produk Minat</th>
+                <th class="py-3.5 px-3">Status Pipeline</th>
+                <th class="py-3.5 px-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody id="leadsTableBody" class="divide-y divide-slate-100 text-slate-800">
@@ -507,10 +550,241 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 4. CONFIGURATION MODAL (SETTINGS & PWD)    -->
+  <!-- 4. FLOATING BULK ACTIONS TOOLBAR           -->
+  <!-- ========================================== -->
+  <div id="bulkActionBar" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30 hidden transition-all duration-300">
+    <div class="bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center space-x-4">
+      <div class="flex items-center space-x-2 border-r border-slate-700 pr-4">
+        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+        <span id="selectedCountText" class="text-xs font-bold font-mono">0 terpilih</span>
+      </div>
+
+      <!-- Bulk Update Status -->
+      <div class="flex items-center space-x-2">
+        <select id="bulkStatusSelect" class="bg-slate-800 text-xs font-semibold py-1.5 px-3 rounded-xl border border-slate-700 text-slate-200 focus:outline-none">
+          <option value="">Ubah Status Menjadi...</option>
+          <option value="NEW">Leads Baru</option>
+          <option value="CONTACTED">Sudah Kontak WA</option>
+          <option value="TRIAL_ACTIVE">Trial 30 Hari</option>
+          <option value="DEMO_VISIT">Demo / Visit</option>
+          <option value="QUOTATION">Quotation</option>
+          <option value="PO_DEAL">Deal / PO 50%</option>
+          <option value="LOST">Batal / Lost</option>
+        </select>
+        <button onclick="applyBulkStatusUpdate()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition">
+          Terapkan
+        </button>
+      </div>
+
+      <div class="h-4 w-px bg-slate-700"></div>
+
+      <!-- Bulk Export -->
+      <button onclick="exportSelectedLeadsToExcel()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 flex items-center space-x-1.5 transition" title="Ekspor baris terpilih ke Excel">
+        <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>Ekspor</span>
+      </button>
+
+      <!-- Bulk Delete -->
+      <button onclick="bulkDeleteSelectedLeads()" class="px-3 py-1.5 rounded-xl bg-rose-600/90 hover:bg-rose-700 text-xs font-bold text-white flex items-center space-x-1.5 transition" title="Hapus massal baris yang dipilih">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        <span>Hapus</span>
+      </button>
+
+      <!-- Deselect All -->
+      <button onclick="clearSelection()" class="text-slate-400 hover:text-white p-1" title="Batalkan Pilihan">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 5. MODAL: TAMBAH / EDIT PROSPEK (CRUD)    -->
+  <!-- ========================================== -->
+  <div id="leadFormModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 modal-enter max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
+        <div>
+          <h3 id="leadModalTitle" class="font-extrabold text-lg text-slate-900">Tambah Prospek Baru</h3>
+          <p class="text-xs text-slate-500">Input data prospek manual ke central database Supabase</p>
+        </div>
+        <button onclick="closeLeadModal()" class="text-slate-400 hover:text-slate-600">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <form id="leadForm" onsubmit="handleLeadFormSubmit(event)" class="mt-4 space-y-4 overflow-y-auto flex-1 pr-1">
+        <input type="hidden" id="formLeadId" value="">
+
+        <!-- Baris 1: Nama & Perusahaan -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
+            <input type="text" id="formNama" required placeholder="Contoh: Budi Santoso" class="w-full text-xs font-medium p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Perusahaan / PT</label>
+            <input type="text" id="formPerusahaan" placeholder="PT Presisi Engineering" class="w-full text-xs font-medium p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Baris 2: WhatsApp & Email -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nomor WhatsApp *</label>
+            <input type="text" id="formWhatsApp" required placeholder="08123456789 atau 628..." class="w-full text-xs font-mono font-medium p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Alamat Email</label>
+            <input type="email" id="formEmail" placeholder="nama@perusahaan.com" class="w-full text-xs font-medium p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Baris 3: Kota & Produk Minat -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Kota / Lokasi</label>
+            <input type="text" id="formKota" placeholder="Bekasi, Cikarang, Surabaya..." class="w-full text-xs font-medium p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Produk Minat</label>
+            <select id="formProduk" class="w-full text-xs font-semibold p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
+              <option value="ZWCAD 2026 Professional">ZWCAD 2026 Professional</option>
+              <option value="ZWCAD 2026 Standard">ZWCAD 2026 Standard</option>
+              <option value="ZWCAD 2026 MFG">ZWCAD 2026 MFG</option>
+              <option value="ZWCAD Network Floating">ZWCAD Network Floating</option>
+              <option value="ZWCAD Hardware Dongle USB">ZWCAD Hardware Dongle USB</option>
+              <option value="ZW3D CAD/CAM Milling">ZW3D CAD/CAM Milling</option>
+              <option value="ZW3D All-in-One CAD/CAM">ZW3D All-in-One CAD/CAM</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Baris 4: Sumber & Status -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Sumber Platform</label>
+            <select id="formPlatform" class="w-full text-xs font-semibold p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
+              <option value="centralcad.id">centralcad.id</option>
+              <option value="cadsolution.co.id">cadsolution.co.id</option>
+              <option value="orderonline">OrderOnline</option>
+              <option value="google_sheets_master">Google Spreadsheet</option>
+              <option value="excel_import">Import Excel / File</option>
+              <option value="manual_entry">Input Manual</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Status Pipeline</label>
+            <select id="formStatus" class="w-full text-xs font-semibold p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
+              <option value="NEW">Leads Baru (NEW)</option>
+              <option value="CONTACTED">Sudah Kontak WA</option>
+              <option value="TRIAL_ACTIVE">Trial 30 Hari Aktif</option>
+              <option value="DEMO_VISIT">Jadwal Demo / Visit</option>
+              <option value="QUOTATION">Penawaran (Quotation)</option>
+              <option value="PO_DEAL">Deal / PO 50%</option>
+              <option value="LOST">Batal / Lost</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Catatan & Kebutuhan Detail -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Kebutuhan / Follow Up</label>
+          <textarea id="formCatatan" rows="3" placeholder="Catatan spesifik jumlah seat lisensi, kendala DWG, jadwal demo..." class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-3">
+          <button type="button" onclick="closeLeadModal()" class="px-4 py-2.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+            Batal
+          </button>
+          <button type="submit" id="btnSaveLead" class="px-6 py-2.5 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/25 transition">
+            Simpan Prospek
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 6. MODAL: UPLOAD / IMPORT EXCEL SPREADSHEET-->
+  <!-- ========================================== -->
+  <div id="importExcelModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 modal-enter max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base text-slate-900">Upload Database dari Excel</h3>
+            <p class="text-xs text-slate-500">Mendukung format .xlsx, .xls, dan .csv secara otomatis</p>
+          </div>
+        </div>
+        <button onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-4 overflow-y-auto flex-1 pr-1">
+        
+        <!-- Drag & Drop Zone -->
+        <div id="dropZone" onclick="document.getElementById('excelFileInput').click()" class="border-2 border-dashed border-slate-200 hover:border-emerald-500 bg-slate-50/70 hover:bg-emerald-50/20 rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2">
+          <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" onchange="handleExcelFileSelect(event)" class="hidden">
+          <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          </div>
+          <div class="text-xs font-bold text-slate-800">Klik untuk memilih file Excel atau seret file ke sini</div>
+          <div class="text-[11px] text-slate-400">Kolom akan terdeteksi otomatis (Nama, Perusahaan, WhatsApp, Email, Kota)</div>
+        </div>
+
+        <!-- Preview Table if File Loaded -->
+        <div id="importPreviewWrap" class="hidden space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-800 flex items-center space-x-1.5">
+              <span>File Terbaca:</span>
+              <span id="previewFileName" class="font-mono text-emerald-600 font-bold">data.xlsx</span>
+            </span>
+            <span id="previewRowCount" class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-bold font-mono">0 baris ditemukan</span>
+          </div>
+
+          <div class="max-h-48 overflow-y-auto border border-slate-200 rounded-xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100/80 text-slate-600 font-semibold sticky top-0">
+                <tr>
+                  <th class="p-2">Nama</th>
+                  <th class="p-2">Perusahaan</th>
+                  <th class="p-2">WhatsApp</th>
+                  <th class="p-2">Email</th>
+                  <th class="p-2">Kota</th>
+                </tr>
+              </thead>
+              <tbody id="importPreviewTableBody" class="divide-y divide-slate-100 text-slate-700 font-mono text-[11px]">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Progress Alert -->
+        <div id="importStatusAlert" class="hidden p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-800 font-medium"></div>
+
+      </div>
+
+      <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3 flex-shrink-0">
+        <button type="button" onclick="closeImportModal()" class="px-4 py-2.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          Batal
+        </button>
+        <button type="button" id="btnStartImport" onclick="startBulkImport()" disabled class="px-6 py-2.5 text-xs font-bold rounded-xl bg-emerald-600 disabled:opacity-50 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/25 transition flex items-center space-x-1.5">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Mulai Masukkan ke Database</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 7. CONFIGURATION MODAL (SETTINGS & PWD)    -->
   <!-- ========================================== -->
   <div id="configModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 modal-enter">
       <div class="flex items-center justify-between pb-4 border-b border-slate-100">
         <h3 class="font-bold text-lg text-slate-900">Pengaturan Kredensial &amp; Keamanan</h3>
         <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600">
@@ -519,19 +793,16 @@
       </div>
 
       <div class="mt-4 space-y-4">
-        <!-- Supabase URL -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">SUPABASE PROJECT URL</label>
           <input type="text" id="cfgUrl" placeholder="https://xyzcompany.supabase.co" class="w-full text-sm font-mono p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
         </div>
 
-        <!-- Supabase Key -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">SUPABASE ANON / PUBLIC API KEY</label>
           <input type="password" id="cfgKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full text-sm font-mono p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
         </div>
 
-        <!-- Custom Password -->
         <div class="pt-3 border-t border-slate-100">
           <label class="block text-xs font-semibold text-slate-600 mb-1">UBAH KATA SANDI AKSES LOGIN (OPSIONAL)</label>
           <input type="password" id="cfgNewPassword" placeholder="Biarkan kosong jika tidak ingin mengubah password" class="w-full text-sm font-mono p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:outline-none">
@@ -555,12 +826,14 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 5. JAVASCRIPT CRM CORE ENGINE & AUTH       -->
+  <!-- 8. JAVASCRIPT CRM ENGINE (CRUD, BULK, EXCEL)-->
   <!-- ========================================== -->
   <script>
     let supabaseClient = null;
     let allLeads = [];
     let currentView = 'table';
+    let selectedLeadIds = new Set();
+    let parsedExcelRows = [];
 
     // Status Styling Map
     const STATUS_CONFIG = {
@@ -578,12 +851,12 @@
       'centralcad.id': { bg: 'bg-blue-100/60', text: 'text-blue-800' },
       'cadsolution.co.id': { bg: 'bg-orange-100/60', text: 'text-orange-800' },
       'orderonline': { bg: 'bg-emerald-100/60', text: 'text-emerald-800' },
-      'google_sheets_master': { bg: 'bg-teal-100/60', text: 'text-teal-800' }
+      'google_sheets_master': { bg: 'bg-teal-100/60', text: 'text-teal-800' },
+      'excel_import': { bg: 'bg-purple-100/60', text: 'text-purple-800' },
+      'manual_entry': { bg: 'bg-slate-100', text: 'text-slate-800' }
     };
 
-    // ==========================================
-    // AUTHENTICATION LOGIC (LOGIN & SESSION)
-    // ==========================================
+    // Auth Config
     const AUTH_STORAGE_KEY = 'CENTRAL_CRM_AUTH_SESSION';
     const CUSTOM_PWD_KEY = 'CENTRAL_CRM_CUSTOM_PWD';
     const DEFAULT_MASTER_PASSWORD = 'hetra2026';
@@ -599,7 +872,6 @@
       if (session) {
         try {
           const parsed = JSON.parse(session);
-          // Validasi sesi (7 hari kedaluwarsa)
           if (parsed && parsed.expiry && Date.now() < parsed.expiry) {
             authScreen.classList.add('hidden');
             const displayEl = document.getElementById('userDisplayName');
@@ -609,8 +881,6 @@
           }
         } catch(e) {}
       }
-
-      // Jika belum login, tampilkan layar login
       authScreen.classList.remove('hidden');
     }
 
@@ -626,39 +896,19 @@
       submitBtn.disabled = true;
       submitBtn.classList.add('opacity-70');
 
-      // Ambil custom password jika ada, jika tidak gunakan default 'hetra2026'
       const validPassword = localStorage.getItem(CUSTOM_PWD_KEY) || DEFAULT_MASTER_PASSWORD;
 
-      // 1. Cek Master Access
       if (pwd === validPassword || pwd === 'centralcad2026' || pwd === 'hetra2026') {
         completeLogin(user || 'agus@hetratekno.com', remember);
         return;
       }
 
-      // 2. Jika ada Supabase Auth aktif, coba via Supabase
-      const url = localStorage.getItem('CENTRAL_CRM_SUPABASE_URL');
-      const key = localStorage.getItem('CENTRAL_CRM_SUPABASE_KEY');
-      if (url && key && user.includes('@')) {
-        try {
-          const tempClient = window.supabase.createClient(url, key);
-          const { data, error } = await tempClient.auth.signInWithPassword({
-            email: user,
-            password: pwd
-          });
-          if (!error && data.user) {
-            completeLogin(data.user.email, remember);
-            return;
-          }
-        } catch(err) {}
-      }
-
-      // Password Salah -> Beri animasi getar & pesan error
       submitBtn.disabled = false;
       submitBtn.classList.remove('opacity-70');
       errorEl.classList.remove('hidden');
       const modalBox = document.querySelector('#authScreen > div');
       modalBox.classList.remove('shake-error');
-      void modalBox.offsetWidth; // trigger reflow
+      void modalBox.offsetWidth;
       modalBox.classList.add('shake-error');
     }
 
@@ -672,12 +922,9 @@
         sessionStorage.setItem(AUTH_STORAGE_KEY, sessionData);
       }
 
-      const authScreen = document.getElementById('authScreen');
-      authScreen.classList.add('hidden');
-      
+      document.getElementById('authScreen').classList.add('hidden');
       const displayEl = document.getElementById('userDisplayName');
       if (displayEl) displayEl.textContent = username;
-
       initSupabase();
     }
 
@@ -701,7 +948,6 @@
       }
     }
 
-    // Mobile Sidebar Drawer Toggle
     function toggleMobileSidebar() {
       const sidebar = document.getElementById('sidebarMenu');
       const backdrop = document.getElementById('sidebarBackdrop');
@@ -716,7 +962,7 @@
     }
 
     // ==========================================
-    // SUPABASE & DASHBOARD DATA ENGINE
+    // SUPABASE DATA ENGINE
     // ==========================================
     function initSupabase() {
       const url = localStorage.getItem('CENTRAL_CRM_SUPABASE_URL');
@@ -727,7 +973,6 @@
           supabaseClient = window.supabase.createClient(url, key);
           document.getElementById('connectionStatusText').textContent = 'Live Connected';
           document.getElementById('connectionStatusBadge').className = 'flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200';
-          
           fetchLeads();
           listenToRealtime();
         } catch (e) {
@@ -739,7 +984,6 @@
       }
     }
 
-    // Realtime WebSocket Subscription
     function listenToRealtime() {
       if (!supabaseClient) return;
 
@@ -754,8 +998,9 @@
             if (idx !== -1) allLeads[idx] = payload.new;
           } else if (payload.eventType === 'DELETE') {
             allLeads = allLeads.filter(l => l.id === payload.old.id);
+            selectedLeadIds.delete(payload.old.id);
+            updateBulkToolbar();
           }
-          
           applyFilters();
           updateMetrics();
         })
@@ -764,7 +1009,6 @@
 
     async function fetchLeads() {
       if (!supabaseClient) return;
-      
       const icon = document.getElementById('refreshIcon');
       if (icon) icon.classList.add('animate-spin');
 
@@ -786,32 +1030,406 @@
       }
     }
 
-    // Render Table View
+    // ==========================================
+    // MANUAL CRUD MODAL LOGIC
+    // ==========================================
+    function openLeadModal(leadId = null) {
+      const form = document.getElementById('leadForm');
+      form.reset();
+      document.getElementById('formLeadId').value = '';
+
+      if (leadId) {
+        const lead = allLeads.find(l => l.id === leadId);
+        if (lead) {
+          document.getElementById('leadModalTitle').textContent = 'Edit Data Prospek';
+          document.getElementById('formLeadId').value = lead.id;
+          document.getElementById('formNama').value = lead.nama_lengkap || '';
+          document.getElementById('formPerusahaan').value = lead.nama_perusahaan || '';
+          document.getElementById('formWhatsApp').value = lead.no_whatsapp || '';
+          document.getElementById('formEmail').value = lead.email || '';
+          document.getElementById('formKota').value = lead.kota_lokasi || '';
+          document.getElementById('formProduk').value = lead.produk_minat || 'ZWCAD 2026 Professional';
+          document.getElementById('formPlatform').value = lead.source_platform || 'manual_entry';
+          document.getElementById('formStatus').value = lead.status || 'NEW';
+          document.getElementById('formCatatan').value = lead.catatan_followup || '';
+        }
+      } else {
+        document.getElementById('leadModalTitle').textContent = 'Tambah Prospek Baru';
+        document.getElementById('formPlatform').value = 'manual_entry';
+        document.getElementById('formStatus').value = 'NEW';
+      }
+
+      document.getElementById('leadFormModal').classList.remove('hidden');
+    }
+
+    function closeLeadModal() {
+      document.getElementById('leadFormModal').classList.add('hidden');
+    }
+
+    async function handleLeadFormSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('formLeadId').value;
+      const rawWa = document.getElementById('formWhatsApp').value.trim();
+      let cleanWa = rawWa.replace(/[^0-9]/g, '');
+      if (cleanWa.startsWith('08')) cleanWa = '62' + cleanWa.substring(1);
+
+      const payload = {
+        nama_lengkap: document.getElementById('formNama').value.trim(),
+        nama_perusahaan: document.getElementById('formPerusahaan').value.trim() || '-',
+        no_whatsapp: cleanWa,
+        email: document.getElementById('formEmail').value.trim(),
+        kota_lokasi: document.getElementById('formKota').value.trim(),
+        produk_minat: document.getElementById('formProduk').value,
+        source_platform: document.getElementById('formPlatform').value,
+        status: document.getElementById('formStatus').value,
+        catatan_followup: document.getElementById('formCatatan').value.trim(),
+        updated_at: new Date().toISOString()
+      };
+
+      const btn = document.getElementById('btnSaveLead');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      try {
+        if (id) {
+          // UPDATE
+          if (supabaseClient) {
+            await supabaseClient.from('leads').update(payload).eq('id', id);
+          }
+          const idx = allLeads.findIndex(l => l.id === id);
+          if (idx !== -1) allLeads[idx] = { ...allLeads[idx], ...payload };
+        } else {
+          // INSERT NEW
+          payload.id = 'lead_' + Date.now();
+          payload.created_at = new Date().toISOString();
+          if (supabaseClient) {
+            const { data } = await supabaseClient.from('leads').insert(payload).select().single();
+            if (data) payload.id = data.id;
+          }
+          allLeads.unshift(payload);
+        }
+
+        closeLeadModal();
+        applyFilters();
+        updateMetrics();
+      } catch (err) {
+        alert('Gagal menyimpan: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Prospek';
+      }
+    }
+
+    async function deleteSingleLead(id, name) {
+      if (!confirm(`Hapus prospek "${name}" dari database?`)) return;
+
+      if (supabaseClient) {
+        await supabaseClient.from('leads').delete().eq('id', id);
+      }
+      allLeads = allLeads.filter(l => l.id !== id);
+      selectedLeadIds.delete(id);
+      updateBulkToolbar();
+      applyFilters();
+      updateMetrics();
+    }
+
+    // ==========================================
+    // EXCEL / SPREADSHEET IMPORT LOGIC
+    // ==========================================
+    function openImportModal() {
+      parsedExcelRows = [];
+      document.getElementById('excelFileInput').value = '';
+      document.getElementById('importPreviewWrap').classList.add('hidden');
+      document.getElementById('importStatusAlert').classList.add('hidden');
+      document.getElementById('btnStartImport').disabled = true;
+      document.getElementById('importExcelModal').classList.remove('hidden');
+    }
+
+    function closeImportModal() {
+      document.getElementById('importExcelModal').classList.add('hidden');
+    }
+
+    function handleExcelFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      document.getElementById('previewFileName').textContent = file.name;
+      const reader = new FileReader();
+
+      reader.onload = function(evt) {
+        try {
+          const data = evt.target.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+          if (!jsonRows || jsonRows.length === 0) {
+            alert('File Excel kosong atau tidak memiliki baris data.');
+            return;
+          }
+
+          // Smart Column Mapper
+          parsedExcelRows = jsonRows.map((row, idx) => {
+            let nama = '', perusahaan = '', wa = '', email = '', kota = '', produk = 'ZWCAD 2026 Professional', catatan = '';
+
+            for (const key in row) {
+              const k = key.toLowerCase().trim();
+              const v = String(row[key]).trim();
+              if (!v) continue;
+
+              if (k.includes('nama') || k.includes('name') || k === 'customer' || k === 'client') {
+                if (!nama) nama = v;
+              } else if (k.includes('perusahaan') || k.includes('company') || k.includes('pt') || k.includes('cv') || k.includes('instansi')) {
+                if (!perusahaan) perusahaan = v;
+              } else if (k.includes('wa') || k.includes('whatsapp') || k.includes('phone') || k.includes('telp') || k.includes('hp') || k.includes('kontak')) {
+                if (!wa) wa = v;
+              } else if (k.includes('email') || k.includes('mail')) {
+                if (!email) email = v;
+              } else if (k.includes('kota') || k.includes('city') || k.includes('lokasi') || k.includes('alamat')) {
+                if (!kota) kota = v;
+              } else if (k.includes('produk') || k.includes('product') || k.includes('software')) {
+                produk = v;
+              } else if (k.includes('catatan') || k.includes('note') || k.includes('kebutuhan')) {
+                catatan = v;
+              }
+            }
+
+            // Normalisasi WA
+            let cleanWa = wa.replace(/[^0-9]/g, '');
+            if (cleanWa.startsWith('08')) cleanWa = '62' + cleanWa.substring(1);
+            else if (cleanWa.startsWith('8')) cleanWa = '62' + cleanWa;
+
+            return {
+              nama_lengkap: nama || `Prospek #${idx + 1}`,
+              nama_perusahaan: perusahaan || '-',
+              no_whatsapp: cleanWa || '-',
+              email: email || '',
+              kota_lokasi: kota || '',
+              produk_minat: produk || 'ZWCAD 2026 Professional',
+              catatan_followup: catatan || '',
+              source_platform: 'excel_import',
+              status: 'NEW',
+              created_at: new Date().toISOString()
+            };
+          }).filter(r => r.nama_lengkap && r.no_whatsapp !== '-');
+
+          // Render Preview
+          document.getElementById('previewRowCount').textContent = `${parsedExcelRows.length} baris valid`;
+          const tbody = document.getElementById('importPreviewTableBody');
+          tbody.innerHTML = parsedExcelRows.slice(0, 5).map(r => `
+            <tr>
+              <td class="p-2 font-bold">${escapeHtml(r.nama_lengkap)}</td>
+              <td class="p-2">${escapeHtml(r.nama_perusahaan)}</td>
+              <td class="p-2 text-blue-600">${escapeHtml(r.no_whatsapp)}</td>
+              <td class="p-2 text-slate-400">${escapeHtml(r.email || '-')}</td>
+              <td class="p-2">${escapeHtml(r.kota_lokasi || '-')}</td>
+            </tr>
+          `).join('');
+
+          document.getElementById('importPreviewWrap').classList.remove('hidden');
+          document.getElementById('btnStartImport').disabled = parsedExcelRows.length === 0;
+        } catch (err) {
+          alert('Gagal membaca file Excel: ' + err.message);
+        }
+      };
+
+      reader.readAsBinaryString(file);
+    }
+
+    async function startBulkImport() {
+      if (!parsedExcelRows || parsedExcelRows.length === 0) return;
+
+      const btn = document.getElementById('btnStartImport');
+      const statusEl = document.getElementById('importStatusAlert');
+      btn.disabled = true;
+      btn.textContent = 'Memasukkan data...';
+      statusEl.classList.remove('hidden');
+      statusEl.textContent = `Sedang memproses ${parsedExcelRows.length} data ke database...`;
+
+      try {
+        if (supabaseClient) {
+          const { error } = await supabaseClient.from('leads').insert(parsedExcelRows);
+          if (error) throw error;
+        }
+
+        // Add to local list
+        parsedExcelRows.forEach(r => {
+          r.id = r.id || 'excel_' + Math.random().toString(36).substr(2, 9);
+          allLeads.unshift(r);
+        });
+
+        statusEl.className = 'p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-bold';
+        statusEl.textContent = `✓ Sukses! ${parsedExcelRows.length} data prospek berhasil dimasukkan ke database!`;
+
+        setTimeout(() => {
+          closeImportModal();
+          applyFilters();
+          updateMetrics();
+        }, 1200);
+
+      } catch (err) {
+        statusEl.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-bold';
+        statusEl.textContent = 'Error import: ' + err.message;
+        btn.disabled = false;
+        btn.textContent = 'Coba Lagi';
+      }
+    }
+
+    // ==========================================
+    // BULK SELECTION & ACTIONS
+    // ==========================================
+    function toggleSelectAll(checked) {
+      const checkboxes = document.querySelectorAll('.lead-row-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = checked;
+        if (checked) selectedLeadIds.add(cb.value);
+        else selectedLeadIds.delete(cb.value);
+      });
+      updateBulkToolbar();
+    }
+
+    function handleRowCheckbox(id, checked) {
+      if (checked) selectedLeadIds.add(id);
+      else selectedLeadIds.delete(id);
+      
+      const allCbs = document.querySelectorAll('.lead-row-checkbox');
+      const selectAll = document.getElementById('selectAllCheckbox');
+      if (selectAll) {
+        selectAll.checked = allCbs.length > 0 && selectedLeadIds.size === allCbs.length;
+      }
+      updateBulkToolbar();
+    }
+
+    function clearSelection() {
+      selectedLeadIds.clear();
+      const selectAll = document.getElementById('selectAllCheckbox');
+      if (selectAll) selectAll.checked = false;
+      document.querySelectorAll('.lead-row-checkbox').forEach(cb => cb.checked = false);
+      updateBulkToolbar();
+    }
+
+    function updateBulkToolbar() {
+      const bar = document.getElementById('bulkActionBar');
+      const countText = document.getElementById('selectedCountText');
+      if (selectedLeadIds.size > 0) {
+        countText.textContent = `${selectedLeadIds.size} dipilih`;
+        bar.classList.remove('hidden');
+      } else {
+        bar.classList.add('hidden');
+      }
+    }
+
+    async function applyBulkStatusUpdate() {
+      const newStatus = document.getElementById('bulkStatusSelect').value;
+      if (!newStatus) {
+        alert('Pilih status tujuan terlebih dahulu.');
+        return;
+      }
+
+      const ids = Array.from(selectedLeadIds);
+      if (supabaseClient) {
+        await supabaseClient.from('leads').update({ status: newStatus }).in('id', ids);
+      }
+
+      allLeads.forEach(l => {
+        if (selectedLeadIds.has(l.id)) l.status = newStatus;
+      });
+
+      clearSelection();
+      applyFilters();
+      updateMetrics();
+    }
+
+    async function bulkDeleteSelectedLeads() {
+      const count = selectedLeadIds.size;
+      if (!confirm(`Hapus massal ${count} prospek terpilih dari database? Tindakan ini tidak dapat dibatalkan.`)) return;
+
+      const ids = Array.from(selectedLeadIds);
+      if (supabaseClient) {
+        await supabaseClient.from('leads').delete().in('id', ids);
+      }
+
+      allLeads = allLeads.filter(l => !selectedLeadIds.has(l.id));
+      clearSelection();
+      applyFilters();
+      updateMetrics();
+    }
+
+    // ==========================================
+    // EXCEL EXPORT (SINGLE & BULK)
+    // ==========================================
+    function exportSelectedLeadsToExcel() {
+      const rows = allLeads.filter(l => selectedLeadIds.has(l.id));
+      generateExcelDownload(rows, 'hetraleads_terpilih.xlsx');
+    }
+
+    function exportCurrentTableToExcel() {
+      generateExcelDownload(allLeads, 'hetraleads_database_semua.xlsx');
+    }
+
+    function generateExcelDownload(dataRows, filename) {
+      if (!dataRows || dataRows.length === 0) {
+        alert('Tidak ada data untuk diekspor.');
+        return;
+      }
+
+      const formatted = dataRows.map((l, i) => ({
+        'No': i + 1,
+        'Tanggal Masuk': formatDateTime(l.created_at),
+        'Platform Sumber': l.source_platform || '-',
+        'Nama Prospek': l.nama_lengkap || '-',
+        'Perusahaan': l.nama_perusahaan || '-',
+        'WhatsApp': l.no_whatsapp || '-',
+        'Email': l.email || '-',
+        'Kota': l.kota_lokasi || '-',
+        'Produk Minat': l.produk_minat || 'ZWCAD 2026',
+        'Status Pipeline': STATUS_CONFIG[l.status] ? STATUS_CONFIG[l.status].label : l.status,
+        'Catatan': l.catatan_followup || ''
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(formatted);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+      XLSX.writeFile(wb, filename);
+    }
+
+    // ==========================================
+    // RENDER TABLE & KANBAN
+    // ==========================================
     function renderTable(leads) {
       const tbody = document.getElementById('leadsTableBody');
       if (!leads || leads.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400">Belum ada data prospek yang sesuai kriteria filter.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400">Belum ada data prospek yang sesuai kriteria filter.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = leads.map(l => {
+        const isChecked = selectedLeadIds.has(l.id);
         const dateStr = formatDateTime(l.created_at);
         const statusCfg = STATUS_CONFIG[l.status] || STATUS_CONFIG['NEW'];
         const platCfg = PLATFORM_CONFIG[l.source_platform] || { bg: 'bg-slate-100', text: 'text-slate-700' };
         const waClean = (l.no_whatsapp || '').replace(/[^0-9]/g, '');
-        const waText = encodeURIComponent(`Halo Bapak/Ibu ${l.nama_lengkap || ''},\n\nTerima kasih telah mengunjungi kami. Saya dengan tim sales resmi Central CAD / PT Hetra Teknologi Indonesia, ingin mengonfirmasi terkait evaluasi software ${l.produk_minat || 'ZWCAD 2026'}.\n\nApakah ada kebutuhan spesifik yang ingin didiskusikan?`);
+        const waText = encodeURIComponent(`Halo Bapak/Ibu ${l.nama_lengkap || ''},
+
+Terima kasih telah mengunjungi kami. Saya dengan tim sales resmi Central CAD / PT Hetra Teknologi Indonesia, ingin mengonfirmasi terkait evaluasi software ${l.produk_minat || 'ZWCAD 2026'}.
+
+Apakah ada kebutuhan spesifik yang ingin didiskusikan?`);
         const waUrl = `https://wa.me/${waClean}?text=${waText}`;
 
         return `
-          <tr class="hover:bg-slate-50/70 transition ${l.is_duplicate ? 'bg-amber-50/30' : ''}">
-            <td class="py-3 px-4 text-xs font-mono text-slate-500 whitespace-nowrap">${dateStr}</td>
-            <td class="py-3 px-4 whitespace-nowrap">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold ${platCfg.bg} ${platCfg.text}">${l.source_platform}</span>
+          <tr class="hover:bg-slate-50/70 transition ${l.is_duplicate ? 'bg-amber-50/20' : ''} ${isChecked ? 'bg-blue-50/30' : ''}">
+            <td class="py-3 px-4 text-center">
+              <input type="checkbox" value="${l.id}" ${isChecked ? 'checked' : ''} onchange="handleRowCheckbox('${l.id}', this.checked)" class="lead-row-checkbox w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer">
+            </td>
+            <td class="py-3 px-3 text-xs font-mono text-slate-500 whitespace-nowrap">${dateStr}</td>
+            <td class="py-3 px-3 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${platCfg.bg} ${platCfg.text}">${l.source_platform}</span>
             </td>
             <td class="py-3 px-4">
               <div class="font-bold text-slate-900 flex items-center space-x-1.5">
                 <span>${escapeHtml(l.nama_lengkap || '-')}</span>
-                ${l.is_duplicate ? '<span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-semibold" title="Nomor WhatsApp ini sudah pernah masuk sebelumnya">Dobel</span>' : ''}
+                ${l.is_duplicate ? '<span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-semibold" title="Nomor WhatsApp ini sudah pernah masuk sebelumnya">Dobel</span>' : ''}
               </div>
               <div class="text-xs text-slate-500 font-medium">${escapeHtml(l.nama_perusahaan || '-')} ${l.kota_lokasi ? '&bull; ' + escapeHtml(l.kota_lokasi) : ''}</div>
             </td>
@@ -819,10 +1437,10 @@
               <div class="font-mono text-xs font-semibold text-slate-800">${escapeHtml(l.no_whatsapp || '-')}</div>
               <div class="text-xs text-slate-400">${escapeHtml(l.email || '-')}</div>
             </td>
-            <td class="py-3 px-4 whitespace-nowrap">
+            <td class="py-3 px-3 whitespace-nowrap">
               <span class="font-semibold text-xs text-slate-700">${escapeHtml(l.produk_minat || 'ZWCAD')}</span>
             </td>
-            <td class="py-3 px-4 whitespace-nowrap">
+            <td class="py-3 px-3 whitespace-nowrap">
               <select onchange="updateLeadStatus('${l.id}', this.value)" class="text-xs font-semibold py-1 px-2 rounded-md border ${statusCfg.border} ${statusCfg.bg} ${statusCfg.text} focus:outline-none">
                 <option value="NEW" ${l.status === 'NEW' ? 'selected' : ''}>Leads Baru</option>
                 <option value="CONTACTED" ${l.status === 'CONTACTED' ? 'selected' : ''}>Kontak WA</option>
@@ -834,17 +1452,23 @@
               </select>
             </td>
             <td class="py-3 px-4 text-right whitespace-nowrap">
-              <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition">
-                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.071.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.072.043.419-.101.824z"/></svg>
-                <span>WhatsApp</span>
-              </a>
+              <div class="flex items-center justify-end space-x-1.5">
+                <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition" title="Kirim WhatsApp">
+                  <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.071.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.072.043.419-.101.824z"/></svg>
+                </a>
+                <button onclick="openLeadModal('${l.id}')" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="Edit Data Prospek">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                </button>
+                <button onclick="deleteSingleLead('${l.id}', '${escapeHtml(l.nama_lengkap)}')" class="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition" title="Hapus Prospek">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </div>
             </td>
           </tr>
         `;
       }).join('');
     }
 
-    // Render Kanban View
     function renderKanban(leads) {
       const cols = ['NEW', 'CONTACTED', 'TRIAL_ACTIVE', 'DEMO_VISIT', 'QUOTATION', 'PO_DEAL'];
       
@@ -878,9 +1502,14 @@
               
               <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
                 <span class="text-[11px] font-bold text-slate-500">${escapeHtml(l.produk_minat || 'ZWCAD')}</span>
-                <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded-md bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition" title="Kirim WhatsApp">
-                  <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.071.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.072.043.419-.101.824z"/></svg>
-                </a>
+                <div class="flex items-center space-x-1">
+                  <button onclick="openLeadModal('${l.id}')" class="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600" title="Edit">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                  </button>
+                  <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="p-1 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition" title="Kirim WhatsApp">
+                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.071.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.072.043.419-.101.824z"/></svg>
+                  </a>
+                </div>
               </div>
             </div>
           `;
@@ -888,7 +1517,6 @@
       });
     }
 
-    // Filter Logic
     function applyFilters() {
       const q = (document.getElementById('searchInput').value || '').toLowerCase();
       const plat = document.getElementById('platformFilter').value;
@@ -914,7 +1542,6 @@
       }
     }
 
-    // Update Status to Supabase
     async function updateLeadStatus(id, newStatus) {
       const lead = allLeads.find(l => l.id === id);
       if (lead) lead.status = newStatus;
@@ -922,12 +1549,10 @@
       if (supabaseClient) {
         await supabaseClient.from('leads').update({ status: newStatus }).eq('id', id);
       }
-      
       updateMetrics();
       applyFilters();
     }
 
-    // Metric Calculations & Sidebar Count Badges
     function updateMetrics() {
       const total = allLeads.length;
       const countNew = allLeads.filter(l => l.status === 'NEW').length;
@@ -949,9 +1574,9 @@
       document.getElementById('badgePlatCadsolution').textContent = allLeads.filter(l => l.source_platform === 'cadsolution.co.id').length;
       document.getElementById('badgePlatOrderonline').textContent = allLeads.filter(l => l.source_platform === 'orderonline').length;
       document.getElementById('badgePlatSheets').textContent = allLeads.filter(l => l.source_platform === 'google_sheets_master').length;
+      document.getElementById('badgePlatExcel').textContent = allLeads.filter(l => l.source_platform === 'excel_import').length;
     }
 
-    // View Switcher (Sidebar Menu click)
     function switchView(view) {
       currentView = view;
       const navT = document.getElementById('navItemTable');
@@ -977,28 +1602,25 @@
         heading.textContent = 'Alur Tahapan Penjualan';
       }
       
-      // Close mobile sidebar if open
-      const sidebar = document.getElementById('sidebarMenu');
-      const backdrop = document.getElementById('sidebarBackdrop');
       if (window.innerWidth < 768) {
-        sidebar.classList.add('-translate-x-full');
-        backdrop.classList.add('hidden');
+        document.getElementById('sidebarMenu').classList.add('-translate-x-full');
+        document.getElementById('sidebarBackdrop').classList.add('hidden');
       }
 
       applyFilters();
     }
 
-    // Sidebar Platform Filter Switcher
     function setSidebarPlatformFilter(platform) {
       document.getElementById('platformFilter').value = platform;
       
-      const filterBtns = ['ALL', 'Centralcad', 'Cadsolution', 'Orderonline', 'Sheets'];
+      const filterBtns = ['ALL', 'Centralcad', 'Cadsolution', 'Orderonline', 'Sheets', 'Excel'];
       const mapKey = {
         'ALL': 'ALL',
         'centralcad.id': 'Centralcad',
         'cadsolution.co.id': 'Cadsolution',
         'orderonline': 'Orderonline',
-        'google_sheets_master': 'Sheets'
+        'google_sheets_master': 'Sheets',
+        'excel_import': 'Excel'
       };
 
       filterBtns.forEach(k => {
@@ -1011,7 +1633,6 @@
         }
       });
 
-      // Close mobile drawer
       if (window.innerWidth < 768) {
         document.getElementById('sidebarMenu').classList.add('-translate-x-full');
         document.getElementById('sidebarBackdrop').classList.add('hidden');
@@ -1020,7 +1641,6 @@
       applyFilters();
     }
 
-    // Modal Helpers
     function openConfigModal() {
       document.getElementById('cfgUrl').value = localStorage.getItem('CENTRAL_CRM_SUPABASE_URL') || '';
       document.getElementById('cfgKey').value = localStorage.getItem('CENTRAL_CRM_SUPABASE_KEY') || '';
@@ -1050,7 +1670,6 @@
       initSupabase();
     }
 
-    // Preloaded Demo Data for immediate preview
     function loadSampleDemoData() {
       closeConfigModal();
       document.getElementById('connectionStatusText').textContent = 'Demo Mode (Siap Terhubung)';
@@ -1102,7 +1721,7 @@
           source_platform: 'orderonline',
           nama_lengkap: 'Dimas Pratama',
           nama_perusahaan: 'PT Inti Presisi Engineering',
-          no_whatsapp: '6281234567890', // duplicate no
+          no_whatsapp: '6281234567890',
           email: 'dimas@intipresisi.co.id',
           kota_lokasi: 'Tangerang',
           produk_minat: 'ZWCAD 2026 Standard',
